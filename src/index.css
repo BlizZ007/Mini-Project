@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  body {
+    @apply bg-gray-100 text-gray-900 font-sans;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl shadow-sm transition-all duration-200;
+  }
+
+  .card-yellow {
+    @apply bg-card-yellow;
+  }
+
+  .card-blue {
+    @apply bg-card-blue;
+  }
+
+  .card-white {
+    @apply bg-card-white;
+  }
+
+  .toggle {
+    @apply relative inline-flex h-6 w-11 items-center rounded-full;
+  }
+
+  .toggle-slider {
+    @apply absolute h-5 w-5 transform rounded-full bg-white transition duration-200 ease-in-out;
+  }
+
+  .toggle-on {
+    @apply bg-primary justify-end;
+  }
+
+  .toggle-on .toggle-slider {
+    @apply translate-x-5;
+  }
+
+  .toggle-off {
+    @apply bg-gray-300;
+  }
+
+  .toggle-off .toggle-slider {
+    @apply translate-x-1;
+  }
+
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-colors duration-200;
+  }
+
+  .btn-speed {
+    @apply px-3 py-1 rounded-full text-sm font-medium transition-colors duration-200;
+  }
+}

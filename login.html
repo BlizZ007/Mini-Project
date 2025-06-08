@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Smart Home Dashboard</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#3b82f6",
+                        secondary: "#10b981",
+                        warning: "#f59e0b",
+                        danger: "#ef4444",
+                        light: "#f8fafc",
+                        dark: "#1e293b",
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        .auth-card {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+        
+        .social-btn:hover {
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen flex items-center justify-center p-4">
+    <div class="auth-card w-full max-w-md p-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Welcome Back</h1>
+            <p class="text-gray-600 mt-2">Sign in to your Smart Home account</p>
+        </div>
+        
+        <div id="errorMessage" class="hidden bg-red-100 text-red-700 p-3 rounded-lg mb-4"></div>
+        
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <input type="email" id="email" class="form-input" placeholder="your@email.com" required>
+            </div>
+            
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <a href="#" class="text-sm text-primary hover:underline">Forgot Password?</a>
+                </div>
+                <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+            </div>
+            
+            <div class="flex items-center">
+                <input type="checkbox" id="remember" class="h-4 w-4 text-primary border-gray-300 rounded">
+                <label for="remember" class="ml-2 block text-sm text-gray-700">Remember me</label>
+            </div>
+            
+            <button type="submit" class="btn-primary w-full">Sign In</button>
+        </form>
+        
+        <div class="relative my-6">
+            <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-gray-300"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+                <span class="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+            <button id="googleSignIn" class="social-btn">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5 mr-2">
+                Google
+            </button>
+            <button id="githubSignIn" class="social-btn">
+                <i class="fab fa-github text-lg mr-2"></i>
+                GitHub
+            </button>
+        </div>
+        
+        <p class="text-center mt-6 text-gray-600">
+            Don't have an account? <a href="signup.html" class="text-primary hover:underline">Sign up</a>
+        </p>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            GoogleAuthProvider, 
+            GithubAuthProvider,
+            signInWithPopup 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_7v1X0hv3j9GVm-Pa4iGlz8jxUfGEDGE",
+            authDomain: "raspberrypitest-289f4.firebaseapp.com",
+            projectId: "raspberrypitest-289f4",
+            storageBucket: "raspberrypitest-289f4.firebasestorage.app",
+            messagingSenderId: "690728591418",
+            appId: "1:690728591418:web:d4b2f14d3d006b3c53d503",
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const googleProvider = new GoogleAuthProvider();
+        const githubProvider = new GithubAuthProvider();
+
+        // Email/Password Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            try {
+                errorMessage.classList.add('hidden');
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                // Redirect to dashboard on successful login
+                window.location.href = 'index-cdn.html';
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.classList.remove('hidden');
+            }
+        });
+
+        // Google Sign In
+        document.getElementById('googleSignIn').addEventListener('click', async () => {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                // Redirect to dashboard on successful login
+                window.location.href = 'index-cdn.html';
+            } catch (error) {
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.textContent = error.message;
+                errorMessage.classList.remove('hidden');
+            }
+        });
+
+        // GitHub Sign In
+        document.getElementById('githubSignIn').addEventListener('click', async () => {
+            try {
+                const result = await signInWithPopup(auth, githubProvider);
+                // Redirect to dashboard on successful login
+                window.location.href = 'index-cdn.html';
+            } catch (error) {
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.textContent = error.message;
+                errorMessage.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

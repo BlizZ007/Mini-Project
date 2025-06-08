@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home Dashboard</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#3b82f6",
+                        secondary: "#10b981",
+                        warning: "#f59e0b",
+                        danger: "#ef4444",
+                        light: "#f8fafc",
+                        dark: "#1e293b",
+                        "card-yellow": "#FFF8E1",
+                        "card-blue": "#E3F2FD",
+                        "card-white": "#FFFFFF",
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        .toggle {
+            position: relative;
+            display: inline-flex;
+            height: 1.5rem;
+            width: 2.75rem;
+            align-items: center;
+            border-radius: 9999px;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            height: 1.25rem;
+            width: 1.25rem;
+            transform: translateX(0.10rem);
+            border-radius: 9999px;
+            background-color: white;
+            transition: transform 200ms ease-in-out;
+        }
+
+        .toggle-on {
+            background-color: #00b512;
+            justify-content: flex-end;
+        }
+
+        .toggle-on .toggle-slider {
+            transform: translateX(-0.10rem);
+        }
+
+        .toggle-off {
+            background-color: #ff0000;
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #3b82f6;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
+            <div class="loading-spinner mb-4"></div>
+            <p class="text-gray-700">Loading your dashboard...</p>
+        </div>
+    </div>
+
+    <!-- Auth check overlay -->
+    <div id="authCheckOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h2 class="text-xl font-bold mb-4">Authentication Required</h2>
+            <p class="text-gray-700 mb-6">Please sign in to access your smart home dashboard.</p>
+            <div class="flex space-x-4">
+                <a href="login.html" class="flex-1 bg-primary text-white py-2 px-4 rounded-lg text-center font-medium hover:bg-blue-600 transition-colors">Sign In</a>
+                <a href="signup.html" class="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg text-center font-medium hover:bg-gray-300 transition-colors">Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboardContent" class="max-w-4xl mx-auto p-6 hidden">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white mr-3">
+                    <img id="userAvatar" src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" class="w-full h-full rounded-full object-cover">
+                </div>
+                <div>
+                    <h1 id="welcomeMessage" class="text-xl font-semibold">Hello, User!</h1>
+                    <p class="text-sm text-gray-500">Welcome to your smart home control</p>
+                </div>
+            </div>
+            <button id="signOutBtn" class="text-sm text-gray-600 hover:text-gray-900 flex items-center">
+                <i class="fas fa-sign-out-alt mr-1"></i> Sign Out
+            </button>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex space-x-2 mb-6">
+            <button class="px-4 py-2 rounded-full text-sm font-medium bg-primary text-white">All Devices</button>
+            <button class="px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300">Bedroom 1</button>
+            <button class="px-4 py-2 rounded-full text-sm font-medium bg-gray-200 text-gray-700 hover:bg-gray-300">Utility</button>
+        </div>
+
+        <!-- Device Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Light Card -->
+            <div class="rounded-xl shadow-sm bg-card-yellow p-4">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center">
+                        <div class="mr-3">
+                            <i class="fas fa-lightbulb text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium">Light</h3>
+                            <p class="text-xs text-gray-600">Bedroom 1</p>
+                        </div>
+                    </div>
+                    <button class="toggle toggle-on" onclick="this.classList.toggle('toggle-on'); this.classList.toggle('toggle-off')">
+                        <span class="toggle-slider"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Fan Card -->
+            <div class="rounded-x1 shadow-sm bg-card-blue p-4">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center">
+                        <div class="mr-3">
+                            <i class="fas fa-fan text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium">Fan</h3>
+                            <p class="text-xs text-gray-600">Bedroom 1</p>
+                        </div>
+                    </div>
+                    <button class="toggle toggle-on" onclick="this.classList.toggle('toggle-on'); this.classList.toggle('toggle-off')">
+                        <span class="toggle-slider"></span>
+                    </button>
+                </div>
+                <div class="mt-4">
+                    <p class="text-xs text-gray-600 mb-2">Fan Speed Control</p>
+                    <div class="flex space-x-2">
+                        <button class="px-3 py-1 rounded-full text-sm font-medium bg-white text-gray-700 hover:bg-gray-100">Low</button>
+                        <button class="px-3 py-1 rounded-full text-sm font-medium bg-primary text-white">Medium</button>
+                        <button class="px-3 py-1 rounded-full text-sm font-medium bg-white text-gray-700 hover:bg-gray-100">High</button>
+                        <button class="px-3 py-1 rounded-full text-sm font-medium bg-white text-gray-700 hover:bg-gray-100">Turbo</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AC Card -->
+            <div class="rounded-xl shadow-sm bg-card-blue p-4">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center">
+                        <div class="mr-3">
+                            <i class="fas fa-snowflake text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium">AC</h3>
+                            <p class="text-xs text-gray-600">Bedroom 1</p>
+                        </div>
+                    </div>
+                    <button class="toggle toggle-off" onclick="this.classList.toggle('toggle-on'); this.classList.toggle('toggle-off')">
+                        <span class="toggle-slider"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Water Pump Card -->
+            <div class="rounded-xl shadow-sm bg-card-yellow p-4">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center">
+                        <div class="mr-3">
+                            <i class="fas fa-tint text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-medium">Water Pump</h3>
+                            <p class="text-xs text-gray-600">Utility</p>
+                        </div>
+                    </div>
+                    <button class="toggle toggle-on" onclick="this.classList.toggle('toggle-on'); this.classList.toggle('toggle-off')">
+                        <span class="toggle-slider"></span>
+                    </button>
+                </div>
+                <div class="mt-4">
+                    <p class="text-xs text-gray-600 mb-2">Water Level</p>
+                    <div class="relative h-4 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="absolute top-0 left-0 h-full bg-green-500 rounded-full" style="width: 75%"></div>
+                    </div>
+                    <div class="flex justify-between mt-1">
+                        <span class="text-xs text-gray-600">75%</span>
+                        <span class="text-xs text-gray-600">Water Level</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Temperature Card -->
+            <div class="rounded-xl shadow-sm bg-card-white p-4">
+                <div class="flex flex-col items-center justify-center">
+                    <div class="relative w-32 h-32 flex items-center justify-center mb-4">
+                        <div class="absolute w-full h-full rounded-full border-4 border-gray-100"></div>
+                        <div class="absolute w-24 h-24 rounded-full border-4 border-primary"></div>
+                        <div class="text-3xl font-bold">
+                            23°
+                            <span class="text-sm font-normal">C</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-500">Normal</p>
+                    <h3 class="text-lg font-medium mt-2">Room Temperature</h3>
+                </div>
+            </div>
+
+            <!-- History Card -->
+            <div class="rounded-xl shadow-sm bg-card-white p-4 lg:col-span-2">
+                <h3 class="text-lg font-medium mb-4">History</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Sarah" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-grow">
+                            <p class="text-sm">
+                                <span class="font-medium">Sarah</span> turned on the lights
+                            </p>
+                            <p class="text-xs text-gray-500">2 minutes ago</p>
+                        </div>
+                        <div class="w-2 h-2 rounded-full bg-green-500 mt-2"></div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="John" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-grow">
+                            <p class="text-sm">
+                                <span class="font-medium">John</span> turned off the AC
+                            </p>
+                            <p class="text-xs text-gray-500">15 minutes ago</p>
+                        </div>
+                        <div class="w-2 h-2 rounded-full bg-green-500 mt-2"></div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                            <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Emma" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-grow">
+                            <p class="text-sm">
+                                <span class="font-medium">Emma</span> opened curtains
+                            </p>
+                            <p class="text-xs text-gray-500">1 hour ago</p>
+                        </div>
+                        <div class="w-2 h-2 rounded-full bg-green-500 mt-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import {
+            getAuth,
+            onAuthStateChanged,
+            signOut,
+            GoogleAuthProvider,
+            GithubAuthProvider
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD_7v1X0hv3j9GVm-Pa4iGlz8jxUfGEDGE",
+            authDomain: "raspberrypitest-289f4.firebaseapp.com",
+            projectId: "raspberrypitest-289f4",
+            storageBucket: "raspberrypitest-289f4.firebasestorage.app",
+            messagingSenderId: "690728591418",
+            appId: "1:690728591418:web:d4b2f14d3d006b3c53d503",
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // DOM elements
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const authCheckOverlay = document.getElementById('authCheckOverlay');
+        const dashboardContent = document.getElementById('dashboardContent');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const userAvatar = document.getElementById('userAvatar');
+        const signOutBtn = document.getElementById('signOutBtn');
+
+        // Check authentication state
+        onAuthStateChanged(auth, (user) => {
+            // Hide loading overlay
+            loadingOverlay.classList.add('hidden');
+
+            if (user) {
+                // User is signed in
+                console.log('User is signed in:', user);
+
+                // Update welcome message with user's name
+                if (user.displayName) {
+                    welcomeMessage.textContent = `Hello, ${user.displayName}!`;
+                }
+
+                // Update user avatar if available
+                if (user.photoURL) {
+                    userAvatar.src = user.photoURL;
+                }
+
+                // Show dashboard content
+                dashboardContent.classList.remove('hidden');
+                authCheckOverlay.classList.add('hidden');
+            } else {
+                // User is signed out
+                console.log('User is signed out');
+
+                // Show auth check overlay
+                authCheckOverlay.classList.remove('hidden');
+                dashboardContent.classList.add('hidden');
+            }
+        });
+
+        // Sign out functionality
+        signOutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                // Redirect to login page
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('Error signing out:', error);
+            }
+        });
+
+        // Simple toggle functionality
+        document.querySelectorAll('.toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                this.classList.toggle('toggle-on');
+                this.classList.toggle('toggle-off');
+            });
+        });
+
+        // Fan speed buttons
+        document.querySelectorAll('.fan-speed-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.fan-speed-btn').forEach(b => {
+                    b.classList.remove('bg-primary', 'text-white');
+                    b.classList.add('bg-white', 'text-gray-700');
+                });
+                this.classList.remove('bg-white', 'text-gray-700');
+                this.classList.add('bg-primary', 'text-white');
+            });
+        });
+    </script>
+</body>
+</html>
